@@ -1,0 +1,13 @@
+version: "3.7"
+services:
+  lambda:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+    env_file:
+      - .env
+    ports:
+      - "9000:8080"
+    platform: linux/amd64
