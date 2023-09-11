@@ -2,15 +2,37 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/google/go-querystring/query"
+	"golang.org/x/time/rate"
 )
 
+var rateLimiter *rate.Limiter
+
+func init() {
+	reqPerSec, err := strconv.Atoi(os.Getenv("TOGGL_REQ_PER_SEC"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rateLimiter = rate.NewLimiter(rate.Limit(reqPerSec), 1)
+}
+
 func request(url string, method string, body interface{}, response interface{}) error {
+	err := rateLimiter.Wait(context.Background())
+
+	if err != nil {
+		return err
+	}
+
 	var bodyBytes []byte
 
 	if body != nil {
